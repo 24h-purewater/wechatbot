@@ -1,4 +1,6 @@
 from werobot import WeRoBot
+from werobot.replies import VoiceReply
+
 from openai import get_answer, text2speech_and_upload_media_to_wx
 from bottle import Bottle
 from werobot.contrib.bottle import make_view
@@ -12,7 +14,6 @@ client = robot.client
 client.grant_token()
 
 
-
 @robot.text
 def echo(message):
     logger.info('text message:', message.content)
@@ -23,12 +24,11 @@ def echo(message):
 @robot.voice
 def echo(message):
     recognition = message.recognition
-    logger.info('voice message:', recognition)
-    logger.info('voice message recognition:', recognition)
     answer = get_answer(recognition)
     # answer to voice
     ret = text2speech_and_upload_media_to_wx(answer)
-    return ret.media_id
+    return VoiceReply(message=message, media_id=ret['media_id'])
+
 
 app = Bottle()
 app.route('/robot',
