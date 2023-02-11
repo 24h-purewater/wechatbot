@@ -26,7 +26,7 @@ def echo(message):
     recognition = message.recognition
     answer = get_answer(recognition)
     # answer to voice
-    ret = text2speech_and_upload_media_to_wx(answer)
+    ret = text2speech_and_upload_media_to_wx(client, answer)
     return VoiceReply(message=message, media_id=ret['media_id'])
 
 
