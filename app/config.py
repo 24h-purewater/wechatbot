@@ -6,6 +6,8 @@ load_dotenv()
 
 openai_endpoint = os.getenv('OPENAI_ENDPOINT')
 validation_sign = os.getenv('VALIDATION_SIGN')
+app_id = os.getenv('APP_ID')
+app_secret = os.getenv('APP_SECRET')
 
 token = os.getenv("WX_TOKEN")
 port = os.getenv("PORT")
