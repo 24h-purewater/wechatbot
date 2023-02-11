@@ -1,0 +1,37 @@
+name: Build 
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+
+      - name: rsync wechatbot
+        uses: burnett01/rsync-deployments@5.2.1
+        with:
+          switches: -avzr --delete --exclude '.env*' --exclude '*.log'
+          path: .
+          remote_path: /root/wechatbot
+          remote_host: ${{ secrets.TEST_SERVER_HOST }}
+          remote_port: ${{ secrets.TEST_SERVER_PORT }}
+          remote_user: ${{ secrets.USER_NAME }}
+          remote_key: ${{ secrets.TEST_SERVER_PRIVATE_KEY }}
+
+      - name: build wechatbot
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.TEST_SERVER_HOST }}
+          username: ${{ secrets.USER_NAME }}
+          key: ${{ secrets.TEST_SERVER_PRIVATE_KEY }}
+          port: ${{ secrets.TEST_SERVER_PORT }}
+          script: |
+            cd /root/wechatbot
+            docker-compose up -d --force-recreate
