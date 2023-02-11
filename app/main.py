@@ -1,15 +1,8 @@
-import os
 from werobot import WeRoBot
+from openai import get_answer
 from bottle import Bottle
 from werobot.contrib.bottle import make_view
-from dotenv import load_dotenv
-
-from logger import get_logger
-
-
-load_dotenv()
-token = os.getenv("WX_TOKEN")
-port = os.getenv("PORT")
+from config import get_logger, token, port
 
 logger = get_logger()
 
@@ -23,7 +16,8 @@ def hello(message):
 @robot.text
 def echo(message):
     logger.info('text message:', message.content)
-    return message.content
+    answer = get_answer(message.content)
+    return answer
 
 
 app = Bottle()
