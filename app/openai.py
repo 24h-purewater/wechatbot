@@ -7,10 +7,11 @@ from config import validation_sign, openai_endpoint, logger
 headers = {'Content-Type': 'application/json'}
 
 
-def get_answer(msg):
+def get_answer(msg, openid):
     data = {
         'sign': validation_sign,
-        'text': msg
+        'text': msg,
+        'openid': openid
     }
     url = openai_endpoint + '/api/chat'
     try:

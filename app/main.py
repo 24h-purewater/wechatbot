@@ -15,7 +15,7 @@ client.grant_token()
 @robot.text
 def echo(message):
     logger.info(f'userid:{message.source}, text content:{message.content}')
-    answer = get_answer(message.content)
+    answer = get_answer(message.content, message.source)
     return answer
 
 
@@ -24,7 +24,7 @@ def echo(message):
     logger.info(f'from_user: {message.source}')
     recognition = message.recognition
     logger.info(f'userid:{message.source}, recognition:{recognition}')
-    answer = get_answer(recognition)
+    answer = get_answer(recognition, message.source)
     logger.info(f'userid:{message.source}, answer:{answer}')
     # answer to voice
     ret = text2speech_and_upload_media_to_wx(client, answer)
