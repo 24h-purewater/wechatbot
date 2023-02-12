@@ -16,18 +16,24 @@ client.grant_token()
 
 @robot.text
 def echo(message):
-    logger.info('text message:', message.content)
+    logger.info(f'userid:{message.source}, text content:{message.content}')
     answer = get_answer(message.content)
     return answer
 
 
 @robot.voice
 def echo(message):
+    logger.info(f'from_user: {message.source}')
     recognition = message.recognition
+    logger.info(f'userid:{message.source}, recognition:{recognition}')
     answer = get_answer(recognition)
+    logger.info(f'userid:{message.source}, answer:{answer}')
     # answer to voice
     ret = text2speech_and_upload_media_to_wx(client, answer)
-    return VoiceReply(message=message, media_id=ret['media_id'])
+    logger.info(f'userid:{message.source}, upload ret:{ret}')
+    if ret is not None:
+        return VoiceReply(message=message, media_id=ret['media_id'])
+    return None
 
 
 app = Bottle()
