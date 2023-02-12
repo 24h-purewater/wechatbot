@@ -4,9 +4,7 @@ from werobot.replies import VoiceReply
 from openai import get_answer, text2speech_and_upload_media_to_wx
 from bottle import Bottle
 from werobot.contrib.bottle import make_view
-from config import get_logger, token, port, app_id, app_secret
-
-logger = get_logger()
+from config import  token, port, app_id, app_secret, logger
 
 robot = WeRoBot(token=token, APP_ID=app_id,
                 APP_SECRET=app_secret)
@@ -41,4 +39,5 @@ app.route('/robot',
           ['GET', 'POST'],
           make_view(robot))
 
+logger.info('server running at port %s', port)
 app.run(host='0.0.0.0', port=port)

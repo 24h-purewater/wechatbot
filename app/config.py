@@ -13,6 +13,8 @@ token = os.getenv("WX_TOKEN")
 port = os.getenv("PORT")
 
 
+
+
 def get_logger():
     log_level = os.getenv("LOG_LEVEL")
     log_file = os.getenv("LOG_FILE")
@@ -24,3 +26,5 @@ def get_logger():
 
     logger = Logger(log_file, level=log_level).logger
     return logger
+
+logger = get_logger()

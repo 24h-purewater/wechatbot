@@ -2,12 +2,10 @@ import json
 import os
 import requests
 import uuid
-from config import get_logger
-
-from config import validation_sign, openai_endpoint
+from config import validation_sign, openai_endpoint, logger
 
 headers = {'Content-Type': 'application/json'}
-logger = get_logger()
+
 
 def get_answer(msg):
     data = {
