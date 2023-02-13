@@ -41,9 +41,7 @@ def consume_voice_msg(q):
                 # delete meterial
                 delete_ret = client.delete_permanent_media(ret['media_id'])
                 logger.info(f'userid:{userid}, delete media result:{delete_ret}')
-            logger.info(f'userid:{userid} voice session end----------------------------------------------------------------')
-            logger.info(f'''api_chat_time: {api_chat_time}, text2speech_and_upload_time: {text2speech_and_upload_time}, 
-                    send_voice_msg_time: {send_voice_msg_time}, total_time: {time.time()-start_time}''')
+            logger.info(f'''api_chat_time: {api_chat_time}, text2speech_and_upload_time: {text2speech_and_upload_time}, send_voice_msg_time: {send_voice_msg_time}, total_time: {time.time()-start_time}''')
             q.task_done()
         except queue.Empty:
             continue
@@ -66,7 +64,6 @@ def consume_text_msg(q):
             send_text_msg_start_at = time.time()
             send_text_message(client, userid, answer)
             send_text_msg_time = time.time() - send_text_msg_start_at
-            logger.info(f'userid:{userid} text session end----------------------------------------------------------------')
             logger.info(f'''api_chat_time: {api_chat_time}, send_text_msg_time: {send_text_msg_time}, total_time: {time.time()-start_time}''')
             q.task_done()
         except queue.Empty:
