@@ -10,6 +10,13 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 headers = {'Content-Type': 'application/json'}
 
+openai_role = '''I want you to act as my english teacher, we'll have daily conversation, here are the rules:
+1. we ask and answer questions each other.
+2. you must ask a new question when you answer.
+3. the conversation must be helpful, creative, clever, and very friendly.
+4. short sentences are preferred.
+5. I want you to refuse any questions related to politics.
+'''
 
 ### openai service
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
@@ -17,7 +24,8 @@ def get_answer(msg, openid):
     data = {
         'sign': validation_sign,
         'text': msg,
-        'openid': openid
+        'openid': openid,
+        'role': openai_role
     }
     url = openai_endpoint + '/api/chat'
     response = requests.post(url=url, headers=headers, data=json.dumps(data))
