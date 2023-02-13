@@ -1,3 +1,4 @@
 werobot
 bottle
 python-dotenv
+tenacity
