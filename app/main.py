@@ -18,24 +18,25 @@ def consume_voice_msg(q):
         try:
             message = q.get(block=True, timeout=1)
             recognition = message.recognition
-            logger.info(f'userid:{message.source}, recognition:{recognition}')
-            answer = get_answer(recognition, message.source)
-            logger.info(f'userid:{message.source}, answer:{answer}')
+            userid = message.source
+            logger.info(f'userid:{userid} voice session start----------------------------------------------------------------')
+            logger.info(f'userid:{userid}, recognition:{recognition}')
+            answer = get_answer(recognition, userid)
+            logger.info(f'userid:{userid}, answer:{answer}')
             if answer is None or answer == '':
                 return None
             # answer to voice
             ret = text2speech_and_upload_media_to_wx(client, answer)
-            logger.info(f'userid:{message.source}, upload ret:{ret}')
+            logger.info(f'userid:{userid}, upload ret:{ret}')
             if ret is not None:
                 time.sleep(int(wx_send_msg_buffer_period))
-                send_ret = client.send_voice_message(message.source, ret['media_id'])
-                logger.info(f'userid:{message.source}, send voice msg result:{send_ret}')
+                send_ret = client.send_voice_message(userid, ret['media_id'])
+                logger.info(f'userid:{userid}, send voice msg result:{send_ret}')
                 if send_ret['errcode'] == 0:
                     # delete meterial
                     delete_ret = client.delete_permanent_media(ret['media_id'])
-                    logger.info(f'userid:{message.source}, delete media result:{delete_ret}')
-
-
+                    logger.info(f'userid:{userid}, delete media result:{delete_ret}')
+            logger.info(f'userid:{userid} voice session end----------------------------------------------------------------')
             q.task_done()
         except queue.Empty:
             continue
@@ -47,11 +48,14 @@ def consume_text_msg(q):
     while True:
         try:
             message = q.get(block=True, timeout=1)
-            logger.info(f'userid:{message.source}, text content:{message.content}')
-            answer = get_answer(message.content, message.source)
-            logger.info(f'userid:{message.source}, answer:{answer}')
-            send_ret = client.send_text_message(message.source, answer)
-            logger.info(f'userid:{message.source}, send text msg result:{send_ret}')
+            userid = message.source
+            logger.info(f'userid:{userid} text session start----------------------------------------------------------------')
+            logger.info(f'userid:{userid}, text content:{message.content}')
+            answer = get_answer(message.content, userid)
+            logger.info(f'userid:{userid}, answer:{answer}')
+            send_ret = client.send_text_message(userid, answer)
+            logger.info(f'userid:{userid}, send text msg result:{send_ret}')
+            logger.info(f'userid:{userid} text session end----------------------------------------------------------------')
             q.task_done()
         except queue.Empty:
             continue
