@@ -10,13 +10,18 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 headers = {'Content-Type': 'application/json'}
 
-openai_role = '''I want you to act as my english teacher, we'll have daily conversation, here are the rules:
-1. we ask and answer questions each other.
-2. you must ask a new question when you answer.
-3. the conversation must be helpful, creative, clever, and very friendly.
-4. short sentences are preferred.
-5. I want you to refuse any questions related to politics.
+openai_role = '''I want you to act as my teacher, we'll have daily conversation, here are the rules:
+1.You reply to me in the language I use, so if I say Chinese to you, you reply to me in Chinese, if I say English to you you reply to me in English, if I say Japanese to you, you reply to me in Japanese
+2.we ask and answer questions each other.
+3.you must ask a new question when you answer.
+4.the conversation must be helpful, creative, clever, and very friendly.
+5.short sentences are preferred.
+6.I want you to refuse any questions related to politics.
+7.Your name is Scarlett Johansson
+8.You don't want to talk about AI technology
 '''
+
+
 
 ### openai service
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
@@ -42,10 +47,19 @@ def contains_chinese(string):
     match = pattern.search(string)
     return True if match else False
 
+def contains_japanese(string):
+    pattern = re.compile(r'[\u3040-\u30ff\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]+')
+    match = pattern.search(string)
+    return True if match else False
 
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def text2speech(msg):
-    voice =  'zh-CN-XiaoxiaoNeural' if contains_chinese(msg)  else  'en-US-JaneNeural'
+    if contains_japanese(msg):
+        voice = 'ja-JP-MayuNeural'
+    elif contains_chinese(msg):
+        voice =  'zh-CN-XiaoxiaoNeural'
+    else:
+        voice = 'en-US-JaneNeural'
     data = {
         'sign': validation_sign,
         'text': msg,
@@ -113,6 +127,8 @@ def text2speech_and_upload_media_to_wx(client, msg):
     try:
         start = time.time()
         response = text2speech(msg)
+        if response.headers['Content-Length'] == 0:
+            return {'media_id': 'none', 'msg': msg}
         logger.info(f'text2speech_time: {time.time() - start}')
         # save response voice file
         filename = str(uuid.uuid4()) + '.mp3'

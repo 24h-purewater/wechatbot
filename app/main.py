@@ -30,6 +30,11 @@ def on_voice_msg(message):
     ret = text2speech_and_upload_media_to_wx(client, answer)
     text2speech_and_upload_time = time.time() - text2speech_start_time
     logger.info(f'userid:{userid}, upload ret:{ret}')
+    if ret['media_id'] == 'none':
+        direct_msg = ret['msg']
+        logger.info(f'userid:{userid}, text2speech not success, maybe unknow language, send msg direct instead: {direct_msg}')
+        send_text_message(client, userid, direct_msg)
+        return
     if ret is not None:
         send_voice_msg_start_at = time.time()
         time.sleep(int(wx_send_msg_buffer_period))
