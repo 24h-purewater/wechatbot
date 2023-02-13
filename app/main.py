@@ -4,7 +4,7 @@ from openai import send_voice_message, send_text_message
 from openai import get_answer, text2speech_and_upload_media_to_wx
 from bottle import Bottle
 from werobot.contrib.bottle import make_view
-from config import token, port, app_id, app_secret, logger, wx_send_msg_buffer_period
+from config import token, port, app_id, app_secret, logger, wx_send_msg_buffer_period, wx_welcome_msg
 import queue
 import threading
 import time
@@ -100,6 +100,23 @@ def handle_voice_msg(message):
     voice_queue.put(message)
     return None
 
+
+
+def send_welcome_msg(client, userid):
+    if len(wx_welcome_msg) > 0:
+        msgstrList = wx_welcome_msg.split('|')
+        for msgstr in msgstrList:
+            if msgstr.startswith('text:'):
+                send_text_message(client, userid, msgstr.replace('text:', '')) 
+            if msgstr.startswith('voice:'):
+                send_voice_message(client, userid, msgstr.replace('voice:', ''))
+    return
+
+@robot.subscribe
+def subscribe(message):
+    userid = message.source
+    send_welcome_msg(client, userid)
+    return None
 
 # api server
 app = Bottle()

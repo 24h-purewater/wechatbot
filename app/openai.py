@@ -12,7 +12,7 @@ headers = {'Content-Type': 'application/json'}
 
 
 ### openai service
-@retry(stop=stop_after_attempt(5), wait=wait_fixed(1))
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def get_answer(msg, openid):
     data = {
         'sign': validation_sign,
@@ -22,12 +22,14 @@ def get_answer(msg, openid):
     url = openai_endpoint + '/api/chat'
     response = requests.post(url=url, headers=headers, data=json.dumps(data))
     if response.status_code != 200 or response.content == '':
-        raise Exception(f'get_answer error: statuscode: {response.status_code}, {response.content}')
+        err_msg = f'get_answer error: statuscode: {response.status_code}, {response.content}'
+        logger.error(err_msg)
+        raise Exception(err_msg)
     answer = str(response.content, encoding="utf-8")
     return answer
 
 
-@retry(stop=stop_after_attempt(5), wait=wait_fixed(1))
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def text2speech(msg):
     data = {
         'sign': validation_sign,
@@ -37,12 +39,14 @@ def text2speech(msg):
     url = openai_endpoint + '/api/text2speech'
     response = requests.post(url=url, headers=headers, data=json.dumps(data))
     if response.status_code != 200 :
-        raise Exception(f'text2speech error: statuscode: {response.status_code}, {response.content}')
+        err_msg = f'text2speech error: statuscode: {response.status_code}, {response.content}'
+        logger.error(err_msg)
+        raise Exception(err_msg)
     return response
 
 
 ### weixin
-@retry(stop=stop_after_attempt(5), wait=wait_fixed(1))
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def upload_permanent_media(client, file):
     try:
         upload_result = client.upload_permanent_media('voice', file)
@@ -52,7 +56,7 @@ def upload_permanent_media(client, file):
 
 
 
-@retry(stop=stop_after_attempt(5), wait=wait_fixed(1))
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def upload_media(client, file):
     try:
         upload_result = client.upload_media('voice', file)
@@ -62,7 +66,7 @@ def upload_media(client, file):
 
 
 
-@retry(stop=stop_after_attempt(5), wait=wait_fixed(1))
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def send_voice_message(client, userid, media_id):
     try:
         send_ret = client.send_voice_message(userid, media_id)
@@ -75,7 +79,7 @@ def send_voice_message(client, userid, media_id):
 
 
 
-@retry(stop=stop_after_attempt(5), wait=wait_fixed(1))
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def send_text_message(client, userid, content):
     try:
         send_ret = client.send_text_message(userid, content)

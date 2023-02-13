@@ -12,6 +12,7 @@ app_secret = os.getenv('APP_SECRET')
 token = os.getenv("WX_TOKEN")
 port = os.getenv("PORT")
 wx_send_msg_buffer_period = os.getenv("WX_SEND_MSG_BUFFER_PERIOD", default=3)
+wx_welcome_msg = os.getenv("WX_WELCOME_MSG")
 
 
 def get_logger():
