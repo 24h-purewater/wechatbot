@@ -19,24 +19,31 @@ default_error_msg = '系统繁忙，请稍后再试'
 def consume_voice_msg(q):
     while True:
         try:
-            message = q.get(block=True, timeout=1)
+            message = q.get(block=True, timeout=0.5)
             recognition = message.recognition
             userid = message.source
             logger.info(f'userid:{userid} voice session start----------------------------------------------------------------')
             logger.info(f'userid:{userid}, recognition:{recognition}')
-            
+            start_time = time.time()
             answer = get_answer(recognition, userid)
+            api_chat_time = time.time() - start_time
             logger.info(f'userid:{userid}, answer:{answer}')
             # answer to voice
+            text2speech_start_time = time.time()
             ret = text2speech_and_upload_media_to_wx(client, answer)
+            text2speech_and_upload_time = time.time() - text2speech_start_time
             logger.info(f'userid:{userid}, upload ret:{ret}')
             if ret is not None:
+                send_voice_msg_start_at = time.time()
                 time.sleep(int(wx_send_msg_buffer_period))
                 send_voice_message(client, userid, ret['media_id'])
+                send_voice_msg_time = time.time() - send_voice_msg_start_at
                 # delete meterial
                 delete_ret = client.delete_permanent_media(ret['media_id'])
                 logger.info(f'userid:{userid}, delete media result:{delete_ret}')
             logger.info(f'userid:{userid} voice session end----------------------------------------------------------------')
+            logger.info(f'''api_chat_time: {api_chat_time}, text2speech_and_upload_time: {text2speech_and_upload_time}, 
+                    send_voice_msg_time: {send_voice_msg_time}, total_time: {time.time()-start_time}''')
             q.task_done()
         except queue.Empty:
             continue
@@ -48,14 +55,19 @@ def consume_voice_msg(q):
 def consume_text_msg(q):
     while True:
         try:
-            message = q.get(block=True, timeout=1)
+            message = q.get(block=True, timeout=0.5)
             userid = message.source
             logger.info(f'userid:{userid} text session start----------------------------------------------------------------')
             logger.info(f'userid:{userid}, text content:{message.content}')
+            start_time = time.time()
             answer = get_answer(message.content, userid)
+            api_chat_time = time.time() - start_time
             logger.info(f'userid:{userid}, answer:{answer}')
+            send_text_msg_start_at = time.time()
             send_text_message(client, userid, answer)
+            send_text_msg_time = time.time() - send_text_msg_start_at
             logger.info(f'userid:{userid} text session end----------------------------------------------------------------')
+            logger.info(f'''api_chat_time: {api_chat_time}, send_text_msg_time: {send_text_msg_time}, total_time: {time.time()-start_time}''')
             q.task_done()
         except queue.Empty:
             continue

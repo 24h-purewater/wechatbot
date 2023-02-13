@@ -1,5 +1,6 @@
 import json
 import os
+import time
 import requests
 import uuid
 from config import validation_sign, openai_endpoint, logger
@@ -91,22 +92,28 @@ def send_text_message(client, userid, content):
 # service
 def text2speech_and_upload_media_to_wx(client, msg):
     try:
+        start = time.time()
         response = text2speech(msg)
+        logger.info(f'text2speech_time: {time.time() - start}')
         # save response voice file
         filename = str(uuid.uuid4()) + '.mp3'
         open(filename, 'wb').write(response.content)
         file = open(filename, 'rb')
         # upload to wechat material
         try:
+            upload_start = time.time()
             upload_result = upload_permanent_media(client, file)
             file.close()
             os.remove(filename)
+            logger.info(f'upload_permanent_media_time: {time.time() - upload_start}')
             return upload_result
         except Exception as e:
+            upload_start = time.time()
             logger.error(f'upload_permanent_media failed: {e}, switch to upload_media')
             upload_result = upload_media(client, file)
             file.close()
             os.remove(filename)
+            logger.info(f'upload_media_time: {time.time() - upload_start}')
             return upload_result
     except Exception as e:
         raise Exception(f'text2speech_and_upload_media_to_wx error: {e}')
