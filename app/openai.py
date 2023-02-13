@@ -21,7 +21,6 @@ def get_answer(msg, openid):
     except Exception as e:
         logger.error(f'get_answer exception: {e}')
         return None
-        
 
 
 
@@ -39,7 +38,10 @@ def text2speech_and_upload_media_to_wx(client, msg):
         open(filename, 'wb').write(response.content)
         # upload to wechat material
         file = open(filename, 'rb')
-        upload_result = client.upload_media('voice', file)
+        upload_result = upload_permanent_media(client, file)
+        if upload_result is None:
+            logger.info('upload_permanent_media failed, switch to upload_media')
+            upload_result = upload_media(client, file)
         file.close()
         # delete tmp file
         os.remove(filename)
@@ -47,3 +49,22 @@ def text2speech_and_upload_media_to_wx(client, msg):
     except Exception as e:
         logger.error(f'text2speech_and_upload_media_to_wx exception: {e}')
         return None
+
+
+
+def upload_permanent_media(client, file):
+    try:
+        upload_result = client.upload_permanent_media('voice', file)
+        return upload_result
+    except Exception as e:
+        logger.error(f'upload_permanent_media error: {e}')
+        return None
+
+
+def upload_media(client, file):
+    try:
+        upload_result = client.upload_media('voice', file)
+        return upload_result
+    except Exception as e:
+        logger.error(f'upload_media error: {e}')
+        return None        
