@@ -3,9 +3,9 @@ import os
 import time
 import requests
 import uuid
+import re
 from config import validation_sign, openai_endpoint, logger
 from tenacity import retry, stop_after_attempt, wait_fixed
-
 
 
 headers = {'Content-Type': 'application/json'}
@@ -37,12 +37,19 @@ def get_answer(msg, openid):
     return answer
 
 
+def contains_chinese(string):
+    pattern = re.compile(r'[\u4e00-\u9fa5]+')
+    match = pattern.search(string)
+    return True if match else False
+
+
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def text2speech(msg):
+    voice =  'zh-CN-XiaoxiaoNeural' if contains_chinese(msg)  else  'en-US-JaneNeural'
     data = {
         'sign': validation_sign,
         'text': msg,
-        'voice': 'en-US-JaneNeural'
+        'voice': voice
     }
     url = openai_endpoint + '/api/text2speech'
     response = requests.post(url=url, headers=headers, data=json.dumps(data))
