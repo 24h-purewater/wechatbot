@@ -37,6 +37,8 @@ def get_answer(msg, openid):
         err_msg = f'get_answer error: url: {url}, statuscode: {response.status_code}, {response.content}, requestdata:{data}'
         logger.error(err_msg)
         raise Exception(err_msg)
+    openaiCost = response.headers.get('X-Openai-Cost')
+    logger.info(f'get_answer response header X-Openai-Cost: {openaiCost}')
     answer = str(response.content, encoding="utf-8")
     return answer
 
@@ -47,7 +49,9 @@ def contains_chinese(string):
     return True if match else False
 
 def contains_japanese(string):
-    pattern = re.compile(r'[\u3040-\u30ff\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]+')
+    # 包含汉字： \u3040-\u30ff\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF
+    # 不包含汉字： \u3040-\u309F\u30A0-\u30FF
+    pattern = re.compile(r'[\u3040-\u309F\u30A0-\u30FF]+')
     match = pattern.search(string)
     return True if match else False
 
@@ -71,6 +75,8 @@ def text2speech(msg):
         err_msg = f'text2speech error: url:{url}, statuscode: {response.status_code}, {response.content}, requestdata:{data}'
         logger.error(err_msg)
         raise Exception(err_msg)
+    azureCost = response.headers.get('X-Azure-Cost')
+    logger.info(f'text2speech response header X-Azure-Cost: {azureCost}')
     return response
 
 
@@ -123,11 +129,12 @@ def send_text_message(client, userid, content):
 
 
 # service
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def text2speech_and_upload_media_to_wx(client, msg):
     try:
         start = time.time()
         response = text2speech(msg)
-        if response.headers['Content-Length'] == 0:
+        if response.headers.get('Content-Length') == 0:
             return {'media_id': 'none', 'msg': msg}
         logger.info(f'text2speech_time: {time.time() - start}')
         # save response voice file
@@ -151,4 +158,5 @@ def text2speech_and_upload_media_to_wx(client, msg):
             logger.info(f'upload_media_time: {time.time() - upload_start}')
             return upload_result
     except Exception as e:
+        logger.error(f'text2speech_and_upload_media_to_wx error: {e}')
         raise Exception(f'text2speech_and_upload_media_to_wx error: {e}')

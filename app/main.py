@@ -149,6 +149,19 @@ def subscribe(message):
     send_welcome_msg(client, userid)
     return None
 
+
+# global error handler
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+sys.excepthook = handle_exception
+
+
+
+
 # api server
 app = Bottle()
 app.route('/robot',
