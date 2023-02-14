@@ -38,7 +38,7 @@ def get_answer(msg, openid):
     url = openai_endpoint + '/api/chat'
     response = requests.post(url=url, headers=headers, data=json.dumps(data))
     if response.status_code != 200 or response.content == '':
-        err_msg = f'get_answer error: url: {url}, statuscode: {response.status_code}, {response.content}'
+        err_msg = f'get_answer error: url: {url}, statuscode: {response.status_code}, {response.content}, requestdata:{data}'
         logger.error(err_msg)
         raise Exception(err_msg)
     answer = str(response.content, encoding="utf-8")
@@ -71,7 +71,7 @@ def text2speech(msg):
     url = openai_endpoint + '/api/text2speech'
     response = requests.post(url=url, headers=headers, data=json.dumps(data))
     if response.status_code != 200 :
-        err_msg = f'text2speech error: url:{url}, statuscode: {response.status_code}, {response.content}'
+        err_msg = f'text2speech error: url:{url}, statuscode: {response.status_code}, {response.content}, requestdata:{data}'
         logger.error(err_msg)
         raise Exception(err_msg)
     return response
