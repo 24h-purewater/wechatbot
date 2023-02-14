@@ -1,19 +1,24 @@
-from werobot import WeRoBot
-from openai import send_voice_message, send_text_message
+import sys
 
-from openai import get_answer, text2speech_and_upload_media_to_wx
-from bottle import Bottle
-from werobot.contrib.bottle import make_view
-from config import token, port, app_id, app_secret, logger, wx_send_msg_buffer_period, wx_welcome_msg, multithreading
+sys.path.append('..')
 import queue
 import threading
 import time
+
+from bottle import Bottle
+from app.config import (app_id, app_secret, multithreading, port, token,
+                    wx_send_msg_buffer_period, wx_welcome_msg, global_config)
+from app.openai import (get_answer, send_text_message, send_voice_message,
+                    text2speech_and_upload_media_to_wx)
+from app.log import logger                    
+from werobot import WeRoBot
+from werobot.contrib.bottle import make_view
+
 robot = WeRoBot(token=token, APP_ID=app_id,
                 APP_SECRET=app_secret)
 client = robot.client
 
 default_error_msg = '系统繁忙，请稍后再试'
-
 
 
 def on_voice_msg(message):
@@ -133,6 +138,7 @@ def send_welcome_msg(client, userid):
                 send_voice_message(client, userid, msgstr.replace('voice:', ''))
     return
 
+
 @robot.subscribe
 def subscribe(message):
     userid = message.source
@@ -146,4 +152,6 @@ app.route('/robot',
           make_view(robot))
 
 logger.info('server running at port %s', port)
+role = global_config['role']
+logger.info(f'using config role: {role}')
 app.run(host='0.0.0.0', port=port)

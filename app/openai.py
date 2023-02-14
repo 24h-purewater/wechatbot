@@ -4,9 +4,9 @@ import time
 import requests
 import uuid
 import re
-from config import validation_sign, openai_endpoint, logger
 from tenacity import retry, stop_after_attempt, wait_fixed
-
+from app.config import validation_sign, openai_endpoint, global_config
+from app.log import logger
 
 headers = {'Content-Type': 'application/json'}
 
@@ -26,11 +26,14 @@ openai_role = '''I want you to act as my teacher, we'll have daily conversation,
 ### openai service
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def get_answer(msg, openid):
+    role = global_config['role']
+    if role is None or role == '':
+        role = openai_role
     data = {
         'sign': validation_sign,
         'text': msg,
         'openid': openid,
-        'role': openai_role
+        'role': role
     }
     url = openai_endpoint + '/api/chat'
     response = requests.post(url=url, headers=headers, data=json.dumps(data))

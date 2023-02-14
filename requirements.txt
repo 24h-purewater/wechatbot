@@ -2,3 +2,7 @@ werobot
 bottle
 python-dotenv
 tenacity
+slack_sdk
+slacker_log_handler
+pyyaml
+pytest

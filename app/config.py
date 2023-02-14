@@ -1,6 +1,8 @@
-from logger import Logger
 import os
 from dotenv import load_dotenv
+
+from yaml import load, FullLoader
+
 
 load_dotenv()
 
@@ -13,13 +15,14 @@ token = os.getenv("WX_TOKEN")
 port = os.getenv("PORT")
 wx_send_msg_buffer_period = os.getenv("WX_SEND_MSG_BUFFER_PERIOD", default=3)
 wx_welcome_msg = os.getenv("WX_WELCOME_MSG")
-multithreading = os.getenv("MULTITHREADING", default= 'off')
+multithreading = os.getenv("MULTITHREADING", default='off')
 
 
-def get_logger():
-    log_level = os.getenv("LOG_LEVEL", default="debug")
-    log_file = os.getenv("LOG_FILE", default="server.log")
-    logger = Logger(log_file, level=log_level).logger
-    return logger
+def get_yaml_config():
+    config_path = os.getenv("CONFIG_PATH", default="/app/config.yaml")
+    with open(config_path, 'r') as f:
+        data = load(f, Loader=FullLoader)
+    return data
 
-logger = get_logger()
+
+global_config = get_yaml_config()
