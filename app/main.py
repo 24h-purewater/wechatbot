@@ -109,6 +109,8 @@ text_consumer_thread.start()
 # messsage handler
 @robot.text
 def handle_text_msg(message):
+    if global_config['maintenance_status'] == True and message.source != global_config['developer_open_id']:
+        return global_config['maintenance_msg']
     if multithreading == 'on':
         text_msg_thread = threading.Thread(target=on_text_msg, args=(message,))
         text_msg_thread.start()
@@ -119,6 +121,8 @@ def handle_text_msg(message):
 
 @robot.voice
 def handle_voice_msg(message):
+    if global_config['maintenance_status'] == True and message.source != global_config['developer_open_id']:
+        return global_config['maintenance_msg']
     if multithreading == 'on':
         voice_msg_thread = threading.Thread(target=on_voice_msg, args=(message,))
         voice_msg_thread.start()

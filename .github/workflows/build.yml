@@ -17,7 +17,7 @@ jobs:
       - name: rsync wechatbot
         uses: burnett01/rsync-deployments@5.2.1
         with:
-          switches: -avzr --delete --exclude '.env*' --exclude '*.log' --exclude '*.yaml' --exclude '*.sqlite3' 
+          switches: -avzr --delete --exclude '.env*' --exclude '*.log' --exclude '*.yaml' --exclude '*.sqlite3'  --exclude '.git'
           path: .
           remote_path: /root/wechatbot
           remote_host: ${{ secrets.TEST_SERVER_HOST }}

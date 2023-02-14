@@ -20,9 +20,16 @@ multithreading = os.getenv("MULTITHREADING", default='off')
 
 def get_yaml_config():
     config_path = os.getenv("CONFIG_PATH", default="/app/config.yaml")
-    with open(config_path, 'r') as f:
-        data = load(f, Loader=FullLoader)
-    return data
+    with open(config_path, 'r', encoding='UTF-8') as f:
+        cfg = load(f, Loader=FullLoader)
+    ms = cfg.get('maintenance_status', True)
+    return {
+        'role': cfg.get('role', ''),
+        'maintenance_status': True if ms is None else ms,
+        'maintenance_msg': cfg.get('maintenance_msg'),
+        'slack_webhook': cfg.get('slack_webhook'),
+        'developer_open_id': cfg.get('developer_open_id'),
+    }
 
 
 global_config = get_yaml_config()

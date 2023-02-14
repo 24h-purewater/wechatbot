@@ -26,14 +26,10 @@ openai_role = '''I want you to act as my teacher, we'll have daily conversation,
 ### openai service
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def get_answer(msg, openid):
-    role = global_config['role']
-    if role is None or role == '':
-        role = openai_role
     data = {
         'sign': validation_sign,
         'text': msg,
         'openid': openid,
-        'role': role
     }
     url = openai_endpoint + '/api/chat'
     response = requests.post(url=url, headers=headers, data=json.dumps(data))
@@ -69,6 +65,7 @@ def text2speech(msg):
         'voice': voice
     }
     url = openai_endpoint + '/api/text2speech'
+    logger.info(f'text2speech: requestdata: {data}')
     response = requests.post(url=url, headers=headers, data=json.dumps(data))
     if response.status_code != 200 :
         err_msg = f'text2speech error: url:{url}, statuscode: {response.status_code}, {response.content}, requestdata:{data}'
