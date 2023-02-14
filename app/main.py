@@ -51,6 +51,13 @@ def on_voice_msg(message):
     logger.info(f'''api_chat_time: {api_chat_time}, text2speech_and_upload_time: {text2speech_and_upload_time}, send_voice_msg_time: {send_voice_msg_time}, total_time: {time.time()-start_time}''')
     return
 
+def on_voice_msg_thread(message):
+    try:
+        on_voice_msg(message)
+    except Exception as e:
+        logger.error(f'on_voice_msg_thread error: {e}')
+        client.send_text_message(message.source, default_error_msg)
+
 def on_text_msg(message):
     userid = message.source
     logger.info(f'userid:{userid} text session start----------------------------------------------------------------')
@@ -64,6 +71,13 @@ def on_text_msg(message):
     send_text_msg_time = time.time() - send_text_msg_start_at
     logger.info(f'''api_chat_time: {api_chat_time}, send_text_msg_time: {send_text_msg_time}, total_time: {time.time()-start_time}''')
     return
+
+def on_text_msg_thread(message):
+    try:
+        on_text_msg(message)
+    except Exception as e:
+        logger.error(f'on_text_msg_thread error: {e}')
+        client.send_text_message(message.source, default_error_msg)
 
 
 
@@ -112,7 +126,7 @@ def handle_text_msg(message):
     if global_config['maintenance_status'] == True and message.source != global_config['developer_open_id']:
         return global_config['maintenance_msg']
     if multithreading == 'on':
-        text_msg_thread = threading.Thread(target=on_text_msg, args=(message,))
+        text_msg_thread = threading.Thread(target=on_text_msg_thread, args=(message,))
         text_msg_thread.start()
         return None
     text_queue.put(message)
@@ -124,7 +138,7 @@ def handle_voice_msg(message):
     if global_config['maintenance_status'] == True and message.source != global_config['developer_open_id']:
         return global_config['maintenance_msg']
     if multithreading == 'on':
-        voice_msg_thread = threading.Thread(target=on_voice_msg, args=(message,))
+        voice_msg_thread = threading.Thread(target=on_voice_msg_thread, args=(message,))
         voice_msg_thread.start()
         return None
     voice_queue.put(message)
