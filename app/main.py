@@ -8,9 +8,10 @@ import time
 from bottle import Bottle
 from app.config import (app_id, app_secret, multithreading, port, token,
                     wx_send_msg_buffer_period, wx_welcome_msg, global_config)
-from app.openai import (get_answer, send_text_message, send_voice_message,
-                    text2speech_and_upload_media_to_wx)
-from app.log import logger                    
+from app.openai import (send_text_message, send_voice_message,
+                    text2speech_and_upload_media_to_wx, get_answer_with_fallback, get_answer_old)
+from app.log import logger       
+from app.constants import default_error_msg
 from werobot import WeRoBot
 from werobot.contrib.bottle import make_view
 
@@ -18,7 +19,6 @@ robot = WeRoBot(token=token, APP_ID=app_id,
                 APP_SECRET=app_secret)
 client = robot.client
 
-default_error_msg = '系统繁忙，请稍后再试'
 
 
 def on_voice_msg(message):
@@ -27,7 +27,14 @@ def on_voice_msg(message):
     logger.info(f'userid:{userid} voice session start----------------------------------------------------------------')
     logger.info(f'userid:{userid}, recognition:{recognition}')
     start_time = time.time()
-    answer = get_answer(recognition, userid)
+    # get answer
+    answer = default_error_msg
+    if global_config['open_ai_fallback'] is True:
+        answer = get_answer_with_fallback(client, recognition, userid)
+        if answer is None :
+            return    
+    else:
+        answer = get_answer_old(recognition, userid)
     api_chat_time = time.time() - start_time
     logger.info(f'userid:{userid}, answer:{answer}')
     # answer to voice
@@ -63,7 +70,15 @@ def on_text_msg(message):
     logger.info(f'userid:{userid} text session start----------------------------------------------------------------')
     logger.info(f'userid:{userid}, text content:{message.content}')
     start_time = time.time()
-    answer = get_answer(message.content, userid)
+
+    # get answer
+    answer = default_error_msg
+    if global_config['open_ai_fallback'] is True:
+        answer = get_answer_with_fallback(client, message.content, userid)
+        if answer is None :
+            return    
+    else:
+        answer = get_answer_old(message.content, userid)
     api_chat_time = time.time() - start_time
     logger.info(f'userid:{userid}, answer:{answer}')
     send_text_msg_start_at = time.time()

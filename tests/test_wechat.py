@@ -3,12 +3,14 @@ from werobot import WeRoBot
 
 from app.config import (app_id, app_secret, global_config, multithreading,
                         port, token, wx_send_msg_buffer_period, wx_welcome_msg)
-
-robot = WeRoBot(token=token, APP_ID=app_id,
-                APP_SECRET=app_secret)
-client = robot.client
+from app.openai import (get_answer_from_context, get_answer_with_fallback,
+                        reset_openai_context)
 
 
-def test_upload_permanent_media():
-    userid = global_config['developer_open_id']
-    client.send_text_message(userid, 'test content')
+def test_get_answer_from_context():
+    s = get_answer_from_context('obwgF6eYT_q-Wu6e_luvmZ9efb00', '我听不懂日语')
+    print('answer',s)
+
+def test_reset_context():
+    s = reset_openai_context('obwgF6eYT_q-Wu6e_luvmZ9efb00')
+    print('answer', s)
