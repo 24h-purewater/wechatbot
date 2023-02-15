@@ -29,6 +29,7 @@ def get_yaml_config():
         'maintenance_msg': cfg.get('maintenance_msg'),
         'slack_webhook': cfg.get('slack_webhook'),
         'developer_open_id': cfg.get('developer_open_id'),
+        'open_ai_max_tokens': cfg.get('open_ai_max_tokens', 1000),
     }
 
 

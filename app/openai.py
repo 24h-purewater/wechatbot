@@ -30,6 +30,7 @@ def get_answer(msg, openid):
         'sign': validation_sign,
         'text': msg,
         'openid': openid,
+        'maxTokens': global_config.get('open_ai_max_tokens', 1000)
     }
     url = openai_endpoint + '/api/chat'
     response = requests.post(url=url, headers=headers, data=json.dumps(data))
@@ -38,7 +39,7 @@ def get_answer(msg, openid):
         logger.error(err_msg)
         raise Exception(err_msg)
     openaiCost = response.headers.get('X-Openai-Cost')
-    logger.info(f'get_answer response header X-Openai-Cost: {openaiCost}')
+    logger.info(f'get_answer requestdata: {data}, response header X-Openai-Cost: {openaiCost}')
     answer = str(response.content, encoding="utf-8")
     return answer
 

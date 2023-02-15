@@ -183,6 +183,5 @@ app.route('/robot',
           make_view(robot))
 
 logger.info('server running at port %s', port)
-role = global_config['role']
-logger.info(f'using config role: {role}')
+logger.info(f'using config: {global_config}')
 app.run(host='0.0.0.0', port=port)
