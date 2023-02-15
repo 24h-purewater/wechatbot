@@ -129,7 +129,7 @@ def consume_text_msg(q):
 
 voice_queue = queue.Queue()
 text_queue = queue.Queue()
-if multithreading == 'off':
+if multithreading == False:
     voice_consumer_thread = threading.Thread(
         target=consume_voice_msg, args=(voice_queue,))
     voice_consumer_thread.start()
@@ -143,7 +143,7 @@ if multithreading == 'off':
 def handle_text_msg(message):
     if maintenance_status == True and message.source != developer_open_id:
         return maintenance_msg
-    if multithreading == 'on':
+    if multithreading == True:
         text_msg_thread = threading.Thread(target=on_text_msg_thread, args=(message,))
         text_msg_thread.start()
         return None
@@ -155,7 +155,7 @@ def handle_text_msg(message):
 def handle_voice_msg(message):
     if maintenance_status == True and message.source != developer_open_id:
         return maintenance_msg
-    if multithreading == 'on':
+    if multithreading == True:
         voice_msg_thread = threading.Thread(target=on_voice_msg_thread, args=(message,))
         voice_msg_thread.start()
         return None
