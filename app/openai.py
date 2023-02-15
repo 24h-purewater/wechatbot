@@ -119,6 +119,7 @@ def get_answer_with_fallback(client, msg, openid):
         else:
             return answer
     except Exception as e:
+        send_text_message(client, openid, thinking_msg)
         logger.info(f'get_answer_with_timeout_message error:{e}')
         return get_answer_with_timeout(client, openid, msg)
 
