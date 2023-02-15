@@ -1,13 +1,10 @@
 import json
 import logging
-import os
 from logging import handlers
 from logging.handlers import HTTPHandler
 from urllib.parse import urlparse
 
-from slack_sdk.webhook import WebhookClient
-
-from app.config import global_config
+from app.config import log_file, log_level, slack_webhook
 
 
 class SlackHandler(HTTPHandler):
@@ -107,7 +104,7 @@ class Logger(object):
         self.logger.addHandler(th)
         # slack logger
         sh = SlackHandler(username='logger', icon_emoji=':robot_face:',
-                          url=global_config['slack_webhook'])
+                          url=slack_webhook)
         sh.setLevel(logging.WARNING)
 
         f = SlackFormatter()
@@ -116,27 +113,8 @@ class Logger(object):
 
 
 def get_logger():
-    log_level = os.getenv("LOG_LEVEL", default="debug")
-    log_file = os.getenv("LOG_FILE", default="server.log")
     logger = Logger(log_file, level=log_level).logger
     return logger
 
 
 logger = get_logger()
-
-
-def send_slack_webhook_msg():
-    url = global_config['slack_webhook']
-    webhook = WebhookClient(url)
-    return webhook.send(
-        text="fallback",
-        blocks=[
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "You have a new request:\n*<fakeLink.toEmployeeProfile.com|Fred Enriquez - New device request>*"
-                }
-            }
-        ]
-    )

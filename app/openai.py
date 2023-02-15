@@ -5,7 +5,7 @@ import requests
 import uuid
 import re
 from tenacity import retry, stop_after_attempt, stop_after_delay, wait_fixed
-from app.config import validation_sign, openai_endpoint, global_config
+from app.config import validation_sign, openai_endpoint, open_ai_max_tokens
 from app.log import logger
 from app.constants import thinking_msg, reset_context_msg, default_error_msg, get_answer_timeout
 
@@ -21,7 +21,7 @@ def get_answer_old(msg, openid):
         'sign': validation_sign,
         'text': msg,
         'openid': openid,
-        'maxTokens': global_config.get('open_ai_max_tokens', 1000)
+        'maxTokens': open_ai_max_tokens
     }
     url = openai_endpoint + '/api/chat'
     response = requests.post(url=url, headers=headers, data=json.dumps(data))
@@ -43,10 +43,10 @@ def get_answer(msg, openid):
         'sign': validation_sign,
         'text': msg,
         'openid': openid,
-        'maxTokens': global_config.get('open_ai_max_tokens', 1000)
+        'maxTokens': open_ai_max_tokens
     }
     url = openai_endpoint + '/api/chat'
-    response = requests.post(url=url, headers=headers, data=json.dumps(data))
+    response = requests.post(url=url, headers=headers, data=json.dumps(data), timeout=get_answer_timeout)
     if response.status_code != 200 or response.content == '':
         err_msg = f'get_answer error: url: {url}, statuscode: {response.status_code}, {response.content}, requestdata:{data}'
         logger.error(err_msg)

@@ -1,5 +1,6 @@
 .vscode
 .env
+.env.test
 *.log
 __pycache__
 *.yaml

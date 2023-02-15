@@ -6,14 +6,18 @@ import threading
 import time
 
 from bottle import Bottle
-from app.config import (app_id, app_secret, multithreading, port, token,
-                    wx_send_msg_buffer_period, wx_welcome_msg, global_config)
-from app.openai import (send_text_message, send_voice_message,
-                    text2speech_and_upload_media_to_wx, get_answer_with_fallback, get_answer_old)
-from app.log import logger       
-from app.constants import default_error_msg
 from werobot import WeRoBot
 from werobot.contrib.bottle import make_view
+
+from app.config import (app_id, app_secret, developer_open_id, global_config,
+                        maintenance_msg, maintenance_status, multithreading,
+                        open_ai_fallback, port, token,
+                        wx_send_msg_buffer_period, wx_welcome_msg)
+from app.constants import default_error_msg
+from app.log import logger
+from app.openai import (get_answer_old, get_answer_with_fallback,
+                        send_text_message, send_voice_message,
+                        text2speech_and_upload_media_to_wx)
 
 robot = WeRoBot(token=token, APP_ID=app_id,
                 APP_SECRET=app_secret)
@@ -29,7 +33,7 @@ def on_voice_msg(message):
     start_time = time.time()
     # get answer
     answer = default_error_msg
-    if global_config['open_ai_fallback'] is True:
+    if open_ai_fallback is True:
         answer = get_answer_with_fallback(client, recognition, userid)
         if answer is None :
             return    
@@ -73,7 +77,7 @@ def on_text_msg(message):
 
     # get answer
     answer = default_error_msg
-    if global_config['open_ai_fallback'] is True:
+    if open_ai_fallback is True:
         answer = get_answer_with_fallback(client, message.content, userid)
         if answer is None :
             return    
@@ -137,8 +141,8 @@ if multithreading == 'off':
 # messsage handler
 @robot.text
 def handle_text_msg(message):
-    if global_config['maintenance_status'] == True and message.source != global_config['developer_open_id']:
-        return global_config['maintenance_msg']
+    if maintenance_status == True and message.source != developer_open_id:
+        return maintenance_msg
     if multithreading == 'on':
         text_msg_thread = threading.Thread(target=on_text_msg_thread, args=(message,))
         text_msg_thread.start()
@@ -149,8 +153,8 @@ def handle_text_msg(message):
 
 @robot.voice
 def handle_voice_msg(message):
-    if global_config['maintenance_status'] == True and message.source != global_config['developer_open_id']:
-        return global_config['maintenance_msg']
+    if maintenance_status == True and message.source != developer_open_id:
+        return maintenance_msg
     if multithreading == 'on':
         voice_msg_thread = threading.Thread(target=on_voice_msg_thread, args=(message,))
         voice_msg_thread.start()
