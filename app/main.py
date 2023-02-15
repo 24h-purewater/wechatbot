@@ -11,7 +11,7 @@ from werobot.contrib.bottle import make_view
 
 from app.config import (app_id, app_secret, developer_open_id, global_config,
                         maintenance_msg, maintenance_status, multithreading,
-                        open_ai_fallback, port, token,
+                        open_ai_fallback, port, wx_token,
                         wx_send_msg_buffer_period, wx_welcome_msg)
 from app.constants import default_error_msg
 from app.log import logger
@@ -19,7 +19,7 @@ from app.openai import (get_answer_old, get_answer_with_fallback,
                         send_text_message, send_voice_message,
                         text2speech_and_upload_media_to_wx)
 
-robot = WeRoBot(token=token, APP_ID=app_id,
+robot = WeRoBot(token=wx_token, APP_ID=app_id,
                 APP_SECRET=app_secret)
 client = robot.client
 
