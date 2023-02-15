@@ -89,10 +89,10 @@ def get_answer_from_context(openid, question):
     return None
     
 
-def get_answer_with_timeout(client, openid):
+def get_answer_with_timeout(client, openid, msg):
     # request /api/currentContent 10 times to get answer
     for i in range(10):
-        answer = get_answer_from_context()
+        answer = get_answer_from_context(openid, msg)
         logger.info(f'userid:{openid}, request /api/currentContent to get answer({i}), result: {answer}')
         if answer is not None:
             return answer
@@ -115,12 +115,12 @@ def get_answer_with_fallback(client, msg, openid):
             # exec.cancel()
             send_text_message(client, openid, thinking_msg)
             logger.info(f'/api/chat request did not get answer in {get_answer_timeout}, start to request /api/currentContext')
-            return get_answer_with_timeout(client, openid)
+            return get_answer_with_timeout(client, openid, msg)
         else:
             return answer
     except Exception as e:
         logger.info(f'get_answer_with_timeout_message error:{e}')
-        return get_answer_with_timeout(client, openid)
+        return get_answer_with_timeout(client, openid, msg)
 
 
 def contains_chinese(string):
