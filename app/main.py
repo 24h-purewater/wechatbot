@@ -39,7 +39,7 @@ def on_voice_msg(message):
     logger.info(f'userid:{userid}, answer:{answer}')
     # answer to voice
     text2speech_start_time = time.time()
-    ret = text2speech_and_upload_media_to_wx(client, answer)
+    ret = text2speech_and_upload_media_to_wx(client, userid, answer)
     text2speech_and_upload_time = time.time() - text2speech_start_time
     logger.info(f'userid:{userid}, upload ret:{ret}')
     if ret['media_id'] == 'none':

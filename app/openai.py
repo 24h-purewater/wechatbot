@@ -30,7 +30,7 @@ def get_answer_old(msg, openid):
         logger.error(err_msg)
         raise Exception(err_msg)
     openaiCost = response.headers.get('X-Openai-Cost')
-    logger.info(f'get_answer requestdata: {data}, response header X-Openai-Cost: {openaiCost}')
+    logger.info(f'{openid} get_answer requestdata: {data}, response header X-Openai-Cost: {openaiCost}')
     answer = str(response.content, encoding="utf-8")
     return answer
 
@@ -53,7 +53,7 @@ def get_answer(msg, openid):
         raise Exception(err_msg)
     openaiCost = response.headers.get('X-Openai-Cost')
     logger.info(
-        f'get_answer requestdata: {data}, response header X-Openai-Cost: {openaiCost}')
+        f'{openid} get_answer requestdata: {data}, response header X-Openai-Cost: {openaiCost}')
     answer = str(response.content, encoding="utf-8")
     return answer if time.time()-start <= get_answer_timeout else None
 
@@ -70,7 +70,7 @@ def reset_openai_context(openid):
         logger.error(err_msg)
         raise Exception(err_msg)
     resp = str(response.content, encoding="utf-8")
-    logger.info(f'resetContext requestdata: {data}, response: {resp}')
+    logger.info(f'{openid} resetContext requestdata: {data}, response: {resp}')
     return resp
 
 
@@ -93,7 +93,7 @@ def get_answer_with_timeout(client, openid, msg):
     # request /api/currentContent 10 times to get answer
     for i in range(10):
         answer = get_answer_from_context(openid, msg)
-        logger.info(f'userid:{openid}, request /api/currentContent to get answer({i}), result: {answer}')
+        logger.info(f'{openid} request /api/currentContent to get answer({i}), result: {answer}')
         if answer is not None:
             return answer
         time.sleep(10)
@@ -114,13 +114,13 @@ def get_answer_with_fallback(client, msg, openid):
             # exec = loop.run_in_executor(None, lambda: send_timeout_message(client, openid))
             # exec.cancel()
             send_text_message(client, openid, thinking_msg)
-            logger.info(f'/api/chat request did not get answer in {get_answer_timeout}, start to request /api/currentContext')
+            logger.info(f'{openid} request /api/chat did not get answer in {get_answer_timeout}s, start to request /api/currentContext')
             return get_answer_with_timeout(client, openid, msg)
         else:
             return answer
     except Exception as e:
         send_text_message(client, openid, thinking_msg)
-        logger.info(f'get_answer_with_timeout_message error:{e}')
+        logger.info(f'{openid} get_answer_with_timeout_message error:{e}')
         return get_answer_with_timeout(client, openid, msg)
 
 
@@ -139,7 +139,7 @@ def contains_japanese(string):
 
 
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
-def text2speech(msg):
+def text2speech(openid, msg):
     if contains_japanese(msg):
         voice = 'ja-JP-MayuNeural'
     elif contains_chinese(msg):
@@ -152,14 +152,14 @@ def text2speech(msg):
         'voice': voice
     }
     url = openai_endpoint + '/api/text2speech'
-    logger.info(f'text2speech: requestdata: {data}')
+    logger.info(f'{openid} text2speech: requestdata: {data}')
     response = requests.post(url=url, headers=headers, data=json.dumps(data))
     if response.status_code != 200:
-        err_msg = f'text2speech error: url:{url}, statuscode: {response.status_code}, {response.content}, requestdata:{data}'
+        err_msg = f'{openid} text2speech error: url:{url}, statuscode: {response.status_code}, {response.content}, requestdata:{data}'
         logger.error(err_msg)
         raise Exception(err_msg)
     azureCost = response.headers.get('X-Azure-Cost')
-    logger.info(f'text2speech response header X-Azure-Cost: {azureCost}')
+    logger.info(f'{openid} text2speech response header X-Azure-Cost: {azureCost}')
     return response
 
 
@@ -186,7 +186,7 @@ def upload_media(client, file):
 def send_voice_message(client, userid, media_id):
     try:
         send_ret = client.send_voice_message(userid, media_id)
-        logger.info(f'userid:{userid}, send voice msg result:{send_ret}')
+        logger.info(f'{userid} send voice msg result:{send_ret}')
         if send_ret['errcode'] != 0:
             raise Exception(f'send_voice_message error: {send_ret}')
         return send_ret
@@ -198,7 +198,7 @@ def send_voice_message(client, userid, media_id):
 def send_text_message(client, userid, content):
     try:
         send_ret = client.send_text_message(userid, content)
-        logger.info(f'userid:{userid}, send text msg result:{send_ret}')
+        logger.info(f'{userid} send text msg result:{send_ret}')
         if send_ret['errcode'] != 0:
             raise Exception(f'send_text_message error: {send_ret}')
         return send_ret
@@ -208,13 +208,13 @@ def send_text_message(client, userid, content):
 
 # service
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
-def text2speech_and_upload_media_to_wx(client, msg):
+def text2speech_and_upload_media_to_wx(client, openid, msg):
     try:
         start = time.time()
-        response = text2speech(msg)
+        response = text2speech(openid, msg)
         if response.headers.get('Content-Length') == 0:
             return {'media_id': 'none', 'msg': msg}
-        logger.info(f'text2speech_time: {time.time() - start}')
+        logger.info(f'{openid} text2speech_time: {time.time() - start}')
         # save response voice file
         filename = str(uuid.uuid4()) + '.mp3'
         open(filename, 'wb').write(response.content)
@@ -226,17 +226,17 @@ def text2speech_and_upload_media_to_wx(client, msg):
             file.close()
             os.remove(filename)
             logger.info(
-                f'upload_permanent_media_time: {time.time() - upload_start}')
+                f'{openid} upload_permanent_media_time: {time.time() - upload_start}')
             return upload_result
         except Exception as e:
             upload_start = time.time()
             logger.error(
-                f'upload_permanent_media failed: {e}, switch to upload_media')
+                f'{openid} upload_permanent_media failed: {e}, switch to upload_media')
             upload_result = upload_media(client, file)
             file.close()
             os.remove(filename)
-            logger.info(f'upload_media_time: {time.time() - upload_start}')
+            logger.info(f'{openid} upload_media_time: {time.time() - upload_start}')
             return upload_result
     except Exception as e:
-        logger.error(f'text2speech_and_upload_media_to_wx error: {e}')
-        raise Exception(f'text2speech_and_upload_media_to_wx error: {e}')
+        logger.error(f'{openid} text2speech_and_upload_media_to_wx error: {e}')
+        raise Exception(f'{openid} text2speech_and_upload_media_to_wx error: {e}')
