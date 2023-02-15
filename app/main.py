@@ -110,14 +110,13 @@ def consume_text_msg(q):
 
 voice_queue = queue.Queue()
 text_queue = queue.Queue()
-
-
-voice_consumer_thread = threading.Thread(
-    target=consume_voice_msg, args=(voice_queue,))
-voice_consumer_thread.start()
-text_consumer_thread = threading.Thread(
-    target=consume_text_msg, args=(text_queue,))
-text_consumer_thread.start()
+if multithreading == 'off':
+    voice_consumer_thread = threading.Thread(
+        target=consume_voice_msg, args=(voice_queue,))
+    voice_consumer_thread.start()
+    text_consumer_thread = threading.Thread(
+        target=consume_text_msg, args=(text_queue,))
+    text_consumer_thread.start()
 
 
 # messsage handler
@@ -184,4 +183,6 @@ app.route('/robot',
 
 logger.info('server running at port %s', port)
 logger.info(f'using config: {global_config}')
+access_token = client.get_access_token()
+logger.info(f'using access_token: {access_token}')
 app.run(host='0.0.0.0', port=port)
