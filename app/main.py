@@ -28,8 +28,8 @@ client = robot.client
 def on_voice_msg(message):
     userid = message.source
     recognition = message.recognition
-    logger.info(f'userid:{userid} voice session start----------------------------------------------------------------')
-    logger.info(f'userid:{userid}, recognition:{recognition}')
+    logger.info(f'{userid} voice session start----------------------------------------------------------------')
+    logger.info(f'{userid} recognition:{recognition}')
     start_time = time.time()
     # get answer
     answer = default_error_msg
@@ -40,15 +40,15 @@ def on_voice_msg(message):
     else:
         answer = get_answer_old(recognition, userid)
     api_chat_time = time.time() - start_time
-    logger.info(f'userid:{userid}, answer:{answer}')
+    logger.info(f'{userid} answer:{answer}')
     # answer to voice
     text2speech_start_time = time.time()
     ret = text2speech_and_upload_media_to_wx(client, userid, answer)
     text2speech_and_upload_time = time.time() - text2speech_start_time
-    logger.info(f'userid:{userid}, upload ret:{ret}')
+    logger.info(f'{userid} upload ret:{ret}')
     if ret['media_id'] == 'none':
         direct_msg = ret['msg']
-        logger.info(f'userid:{userid}, text2speech not success, maybe unknow language, send msg direct instead: {direct_msg}')
+        logger.info(f'{userid} text2speech not success, maybe unknow language, send msg direct instead: {direct_msg}')
         send_text_message(client, userid, direct_msg)
         return
     if ret is not None:
@@ -58,8 +58,8 @@ def on_voice_msg(message):
         send_voice_msg_time = time.time() - send_voice_msg_start_at
         # delete meterial
         delete_ret = client.delete_permanent_media(ret['media_id'])
-        logger.info(f'userid:{userid}, delete media result:{delete_ret}')
-    logger.info(f'''api_chat_time: {api_chat_time}, text2speech_and_upload_time: {text2speech_and_upload_time}, send_voice_msg_time: {send_voice_msg_time}, total_time: {time.time()-start_time}''')
+        logger.info(f'{userid} delete media result:{delete_ret}')
+    logger.info(f'{userid} api_chat_time: {api_chat_time}, text2speech_and_upload_time: {text2speech_and_upload_time}, send_voice_msg_time: {send_voice_msg_time}, total_time: {time.time()-start_time}')
     return
 
 def on_voice_msg_thread(message):
@@ -71,8 +71,8 @@ def on_voice_msg_thread(message):
 
 def on_text_msg(message):
     userid = message.source
-    logger.info(f'userid:{userid} text session start----------------------------------------------------------------')
-    logger.info(f'userid:{userid}, text content:{message.content}')
+    logger.info(f'{userid} text session start----------------------------------------------------------------')
+    logger.info(f'{userid} text content:{message.content}')
     start_time = time.time()
 
     # get answer
@@ -84,11 +84,11 @@ def on_text_msg(message):
     else:
         answer = get_answer_old(message.content, userid)
     api_chat_time = time.time() - start_time
-    logger.info(f'userid:{userid}, answer:{answer}')
+    logger.info(f'{userid} answer:{answer}')
     send_text_msg_start_at = time.time()
     send_text_message(client, userid, answer)
     send_text_msg_time = time.time() - send_text_msg_start_at
-    logger.info(f'''api_chat_time: {api_chat_time}, send_text_msg_time: {send_text_msg_time}, total_time: {time.time()-start_time}''')
+    logger.info(f'{userid} api_chat_time: {api_chat_time}, send_text_msg_time: {send_text_msg_time}, total_time: {time.time()-start_time}')
     return
 
 def on_text_msg_thread(message):
