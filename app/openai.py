@@ -5,16 +5,14 @@ import requests
 import uuid
 import re
 from tenacity import retry, stop_after_attempt, stop_after_delay, wait_fixed
-from app.config import validation_sign, openai_endpoint, open_ai_max_tokens
+from app.config import validation_sign, openai_endpoint, open_ai_max_tokens, mini_program_link
 from app.log import logger
-from app.constants import thinking_msg, reset_context_msg, default_error_msg, get_answer_timeout
+from app.constants import thinking_msg, reset_context_msg, default_error_msg, get_answer_timeout, mini_program_tip
 
 headers = {'Content-Type': 'application/json'}
 
 
-
-
-### openai service
+# openai service
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def get_answer_old(msg, openid):
     data = {
@@ -30,10 +28,10 @@ def get_answer_old(msg, openid):
         logger.error(err_msg)
         raise Exception(err_msg)
     openaiCost = response.headers.get('X-Openai-Cost')
-    logger.info(f'{openid} get_answer requestdata: {data}, response header X-Openai-Cost: {openaiCost}')
+    logger.info(
+        f'{openid} get_answer requestdata: {data}, response header X-Openai-Cost: {openaiCost}')
     answer = str(response.content, encoding="utf-8")
     return answer
-
 
 
 @retry(stop=stop_after_delay(get_answer_timeout), wait=wait_fixed(1), reraise=True)
@@ -46,7 +44,8 @@ def get_answer(msg, openid):
         'maxTokens': open_ai_max_tokens
     }
     url = openai_endpoint + '/api/chat'
-    response = requests.post(url=url, headers=headers, data=json.dumps(data), timeout=get_answer_timeout)
+    response = requests.post(url=url, headers=headers,
+                             data=json.dumps(data), timeout=get_answer_timeout)
     if response.status_code != 200 or response.content == '':
         err_msg = f'get_answer error: url: {url}, statuscode: {response.status_code}, {response.content}, requestdata:{data}'
         logger.error(err_msg)
@@ -82,18 +81,19 @@ def get_answer_from_context(openid, question):
     response = requests.post(url=url, headers=headers, data=json.dumps(data))
     resp = str(response.content, encoding="utf-8")
     msg_list = resp.split('\n')
-    for i, val in enumerate(msg_list):    
+    for i, val in enumerate(msg_list):
         if val.find(question) >= 0:
             answer = msg_list[i+1]
             return answer.replace('AI:', '')
     return None
-    
+
 
 def get_answer_with_timeout(client, openid, msg):
     # request /api/currentContent 10 times to get answer
     for i in range(10):
         answer = get_answer_from_context(openid, msg)
-        logger.info(f'{openid} request /api/currentContent to get answer({i}), result: {answer}')
+        logger.info(
+            f'{openid} request /api/currentContent to get answer({i}), result: {answer}')
         if answer is not None:
             return answer
         time.sleep(10)
@@ -110,11 +110,12 @@ def get_answer_with_fallback(client, msg, openid):
     try:
         answer = get_answer(msg, openid)
         if answer is None:
-            # if /api/chat request didn't get answer in 30s, start to request /api/currentContext   
+            # if /api/chat request didn't get answer in 30s, start to request /api/currentContext
             # exec = loop.run_in_executor(None, lambda: send_timeout_message(client, openid))
             # exec.cancel()
             send_text_message(client, openid, thinking_msg)
-            logger.info(f'{openid} request /api/chat did not get answer in {get_answer_timeout}s, start to request /api/currentContext')
+            logger.info(
+                f'{openid} request /api/chat did not get answer in {get_answer_timeout}s, start to request /api/currentContext')
             return get_answer_with_timeout(client, openid, msg)
         else:
             return answer
@@ -159,7 +160,8 @@ def text2speech(openid, msg):
         logger.error(err_msg)
         raise Exception(err_msg)
     azureCost = response.headers.get('X-Azure-Cost')
-    logger.info(f'{openid} text2speech response header X-Azure-Cost: {azureCost}')
+    logger.info(
+        f'{openid} text2speech response header X-Azure-Cost: {azureCost}')
     return response
 
 
@@ -206,6 +208,19 @@ def send_text_message(client, userid, content):
         raise Exception(f'send_text_message error: {e}')
 
 
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
+def send_miniprogram_info(client, userid):
+    try:
+        send_ret = client.send_text_message(userid, mini_program_tip)
+        send_ret = client.send_text_message(userid, mini_program_link)
+        logger.info(f'{userid} send text msg result:{send_ret}')
+        if send_ret['errcode'] != 0:
+            raise Exception(f'send_text_message error: {send_ret}')
+        return send_ret
+    except Exception as e:
+        raise Exception(f'send_text_message error: {e}')
+
+
 # service
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
 def text2speech_and_upload_media_to_wx(client, openid, msg):
@@ -235,8 +250,10 @@ def text2speech_and_upload_media_to_wx(client, openid, msg):
             upload_result = upload_media(client, file)
             file.close()
             os.remove(filename)
-            logger.info(f'{openid} upload_media_time: {time.time() - upload_start}')
+            logger.info(
+                f'{openid} upload_media_time: {time.time() - upload_start}')
             return upload_result
     except Exception as e:
         logger.error(f'{openid} text2speech_and_upload_media_to_wx error: {e}')
-        raise Exception(f'{openid} text2speech_and_upload_media_to_wx error: {e}')
+        raise Exception(
+            f'{openid} text2speech_and_upload_media_to_wx error: {e}')
