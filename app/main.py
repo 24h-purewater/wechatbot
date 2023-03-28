@@ -1,3 +1,5 @@
+import sys
+sys.path.append('..')
 from app.openai import (get_answer_old, get_answer_with_fallback,
                         send_text_message, send_voice_message,
                         text2speech_and_upload_media_to_wx, send_miniprogram_info)
@@ -13,9 +15,7 @@ from bottle import Bottle
 import time
 import threading
 import queue
-import sys
 
-sys.path.append('..')
 
 
 robot = WeRoBot(token=wx_token, APP_ID=app_id,

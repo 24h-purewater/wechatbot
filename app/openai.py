@@ -5,7 +5,7 @@ import requests
 import uuid
 import re
 from tenacity import retry, stop_after_attempt, stop_after_delay, wait_fixed
-from app.config import validation_sign, openai_endpoint, open_ai_max_tokens, mini_program_link
+from app.config import validation_sign, openai_endpoint, open_ai_max_tokens
 from app.log import logger
 from app.constants import thinking_msg, reset_context_msg, default_error_msg, get_answer_timeout, mini_program_tip
 
@@ -208,11 +208,10 @@ def send_text_message(client, userid, content):
         raise Exception(f'send_text_message error: {e}')
 
 
-@retry(stop=stop_after_attempt(5), wait=wait_fixed(1), reraise=True)
+@retry(stop=stop_after_attempt(1), wait=wait_fixed(1), reraise=True)
 def send_miniprogram_info(client, userid):
     try:
         send_ret = client.send_text_message(userid, mini_program_tip)
-        send_ret = client.send_text_message(userid, mini_program_link)
         logger.info(f'{userid} send text msg result:{send_ret}')
         if send_ret['errcode'] != 0:
             raise Exception(f'send_text_message error: {send_ret}')
